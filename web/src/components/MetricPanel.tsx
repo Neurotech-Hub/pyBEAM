@@ -41,8 +41,8 @@ function MetricCell({ view, id, domain }: { view: View; id: string; domain?: [nu
 
   const options = useMemo<Plot.PlotOptions>(() => {
     const gi = (g: string) => groups.indexOf(g);
-    const pts = rows.filter((r) => Number.isFinite(r.value)).map((r) => ({ ...r, x: gi(r.group) + jitter(r.mouse) - 0.12 }));
-    const summary = stats.map((s) => ({ ...s, x: gi(s.group) + 0.22 }));
+    const pts = rows.filter((r) => Number.isFinite(r.value)).map((r) => ({ ...r, x: gi(r.group) + jitter(r.mouse) }));
+    const summary = stats.map((s) => ({ ...s, x: gi(s.group) }));
     return {
       height: 150,
       marginLeft: 36,
@@ -66,8 +66,8 @@ function MetricCell({ view, id, domain }: { view: View; id: string; domain?: [nu
           stroke: (d) => (d.flagged ? FLAG_COLOR : "none"),
           strokeWidth: 1,
         }),
-        Plot.ruleX(summary, { x: "x", y1: (d) => d.mean - d.sem, y2: (d) => d.mean + d.sem, stroke: "#0f172a" }),
-        Plot.ruleY(summary, { x1: (d) => d.x - 0.08, x2: (d) => d.x + 0.08, y: "mean", stroke: "#0f172a", strokeWidth: 2 }),
+        Plot.ruleX(summary, { x: "x", y1: (d) => d.mean - d.sem, y2: (d) => d.mean + d.sem, stroke: "#0f172a", strokeWidth: 1.5 }),
+        Plot.ruleY(summary, { x1: (d) => d.x - 0.22, x2: (d) => d.x + 0.22, y: "mean", stroke: "#0f172a", strokeWidth: 2 }),
         Plot.tip(
           pts,
           Plot.pointer({
