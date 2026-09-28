@@ -1,5 +1,7 @@
 # pyBEAM
 
+**Live explorer:** [neurotech-hub.github.io/pyBEAM](https://neurotech-hub.github.io/pyBEAM/#/?cohort=001_MYT1L)
+
 Two parts:
 
 1. **Pipeline (`pybeam/`, Python):** crawls the WU-SMAC Box `Behavior` folder, reads the BEAM **L1** CSVs directly from their zips, joins them to each cohort's key file, and writes a small set of intermediate data to `data/`. `data/` is the only data tracked in git.
