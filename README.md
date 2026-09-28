@@ -1,14 +1,25 @@
 # pyBEAM
 
-Data pipeline that crawls the WU-SMAC Box `Behavior` folder, reads the BEAM **L1** CSVs directly from their zips, joins them to each cohort's key file, and writes a small set of intermediate data to `data/`. `data/` is the only data tracked in git; downstream apps and analyses read from it.
+Two parts:
 
-Box is never modified: CSVs are read in place from the zips.
+1. **Pipeline (`pybeam/`, Python):** crawls the WU-SMAC Box `Behavior` folder, reads the BEAM **L1** CSVs directly from their zips, joins them to each cohort's key file, and writes a small set of intermediate data to `data/`. `data/` is the only data tracked in git.
+2. **Explorer app (`web/`, React):** a static sleep/circadian explorer built from `data/web/` and published to GitHub Pages.
+
+Box is never modified: CSVs are read in place from the zips. CI never reads Box; it only publishes the committed `data/web/`.
 
 ## Setup
+
+Pipeline (Python 3.11):
 
 ```bash
 /opt/homebrew/bin/python3.11 -m venv .venv
 .venv/bin/pip install -r requirements.txt
+```
+
+App (Node 22 or newer; CI uses Node 24):
+
+```bash
+cd web && npm install
 ```
 
 The Box path is set in `config.yaml` (`box_root`) and can be overridden with the environment variable:
@@ -33,18 +44,36 @@ A static React + TypeScript app (Vite, TanStack Router/Query, Observable Plot, T
 
 ```bash
 cd web
-npm install
 npm run dev     # http://localhost:5173/pyBEAM/
 npm test        # analysis unit tests (Vitest)
-npm run build   # static site in web/dist
+npm run build   # type-check, then static site in web/dist
+npm run preview # serve web/dist locally
 ```
 
+The site base path defaults to `/pyBEAM/`; set `BASE_PATH` (for example `BASE_PATH=/other-name/ npm run build`) to build for a different path.
+
 - **Tabs:** Quiescence (state thresholds, activity distribution, state raster, time-in-state and bout metrics, threshold sensitivity map), Circadian (group activity by clock time or ZT, cosinor and non-parametric metrics, double-plotted actograms), Across cohorts (Hedges' g vs Wt for any metric in every cohort), and Data & QC (cohort summary, mouse table, `qc_report`).
+- **Filters:** cohort, genotype, sex (all, M, F, or split into genotype × sex groups), recording day (1, 2, or both), key exclusions, and the two state thresholds.
 - **Shareable state:** every filter and threshold lives in the URL hash (for example `#/?cohort=009_C3&q=0.05&w=0.15&tab=circadian`); defaults are omitted. "Copy link" copies the current view.
-- **Print:** the Print button (or the browser print dialog) hides controls and adds a header with the active filters, thresholds, data date, and link.
+- **Print:** the Print button (or the browser print dialog) hides controls and adds a header with the active filters, thresholds, data date, and link. Legends are part of the page, so they print with each plot.
 - **Methods:** the "i" buttons and the Methods menu give short method notes with references.
-- **Deploy:** `.github/workflows/pages.yml` builds `web/` on every push to `main` and publishes it to GitHub Pages (enable Pages with source "GitHub Actions" in the repository settings). The site base path is the repository name. CI never touches Box; it publishes the committed `data/web/`.
-- **Updating data:** run `pybeam run`, review `git diff data/`, then commit and push.
+
+### Analysis definitions
+
+All analysis runs in the browser on the 10-minute grid (`web/src/analysis/`, unit-tested in `analysis.test.ts`).
+
+- **States:** each bin is quiescent if `activity_percent <= q`, awake if `>= w`, and undefined in between. Defaults are `q = 5%` and `w = 15%` (an undefined band of 10% ± 5%); both are adjustable.
+- **Light and dark phase:** lights on 06:00 to 18:00 (`lights_on`/`lights_off` in `config.yaml`, confirmed from `lux > 0`). ZT0 is lights on.
+- **Quiescence metrics:** percent of bins in each state (light, dark, 24 h), quiescent bouts per 24 h (runs of consecutive quiescent bins; empty bins break a bout), and mean bout length.
+- **Circadian metrics:** 24 h cosinor fit on hourly means (MESOR, amplitude, acrophase in ZT, R²), fraction of activity in the dark phase, M10, L5, relative amplitude, and intradaily variability. Interdaily stability is omitted because recordings cover only 2 days.
+- **Group comparisons:** each non-Wt genotype is compared with Wt in the same cohort (sex-matched when sex is split): Hedges' g with 95% CI and a two-sided Mann-Whitney U p-value (normal approximation with tie and continuity corrections). No multiple-comparison correction is applied; results are for exploration.
+- **Exclusions:** when "Apply key exclusions" is on (default), mice whose key `Autoexcluder` starts with "Exclude" are dropped.
+- **QC flags:** mice with a warning or error in `qc_report` (other than `mouse_no_data`) are kept but outlined in red and listed above the plots.
+
+### Deploy and update
+
+- `.github/workflows/pages.yml` runs `npm ci`, `npm test`, and `npm run build` on every push to `main` and publishes `web/dist` to GitHub Pages. Enable Pages with source "GitHub Actions" in the repository settings. The workflow sets the base path to the repository name.
+- To update the data: run `.venv/bin/python -m pybeam run`, review `git diff data/`, then commit and push.
 
 ## What gets crawled
 
@@ -81,7 +110,7 @@ All files are CSV with a header row.
 | `beam_file` | BEAM device id(s) as written in the L1 data |
 | `source_files` | L1 CSV name(s), `;`-separated |
 
-Exclusion decisions are left to downstream analysis; `Autoexcluder` is passed through unchanged.
+`Autoexcluder` is passed through unchanged; the app applies it (see Exclusions above).
 
 ### `beam_l1/<cohort>.csv`: 10-minute L1 time series
 
@@ -115,3 +144,12 @@ Written by `pybeam run` (or `pybeam export`, which rebuilds it from the CSVs abo
 - `pybeam/export.py`: web JSON export and light/grid QC checks
 - `pybeam/qc.py`: QC log
 - `pybeam/__main__.py`: CLI
+- `config.yaml`: Box path, crawl rules, expected columns, light schedule, web grid settings
+- `data/`: committed pipeline outputs (see above)
+- `web/src/data/`: typed loaders for `data/web/` (TanStack Query)
+- `web/src/state/`: URL search-param schema and the derived view (filters, subjects, metrics)
+- `web/src/analysis/`: states, circadian metrics, statistics, subject selection, tests
+- `web/src/components/`: plot wrapper, legends, filter bar, threshold slider, metric panels, method notes
+- `web/src/tabs/`: one file per tab
+- `web/src/methods.ts`: method notes and references
+- `.github/workflows/pages.yml`: GitHub Pages build and deploy
