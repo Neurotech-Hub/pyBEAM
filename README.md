@@ -55,7 +55,7 @@ npm run preview # serve web/dist locally
 The site base path defaults to `/pyBEAM/`; set `BASE_PATH` (for example `BASE_PATH=/other-name/ npm run build`) to build for a different path.
 
 - **Tabs:** Quiescence (state thresholds, activity distribution, state raster, time-in-state and bout metrics, threshold sensitivity map), Circadian (group activity by clock time or ZT, cosinor and non-parametric metrics, double-plotted actograms), Across cohorts (Hedges' g vs Wt for any metric in every cohort), and Data & QC (cohort summary, mouse table, `qc_report`).
-- **Filters:** cohort, genotype, sex (all, M, F, or split into genotype × sex groups), recording day (1, 2, or both), key exclusions, and the two state thresholds.
+- **Filters:** cohort, genotype, sex (all, M, F, or split into genotype × sex groups), optional collapse of Hom and Hemi into a single KO group (on by default), key exclusions, and the two state thresholds. Analysis uses both recording days.
 - **Shareable state:** every filter and threshold lives in the URL hash (for example `#/?cohort=009_C3&q=0.05&w=0.15&tab=circadian`); defaults are omitted. "Copy link" copies the current view.
 - **Print:** the Print button (or the browser print dialog) hides controls and adds a header with the active filters, thresholds, data date, and link. Legends are part of the page, so they print with each plot.
 - **Methods:** the "i" buttons and the Methods menu give short method notes with references.
@@ -68,7 +68,7 @@ All analysis runs in the browser on the 10-minute grid (`web/src/analysis/`, uni
 - **Light and dark phase:** lights on 06:00 to 18:00 (`lights_on`/`lights_off` in `config.yaml`, confirmed from `lux > 0`). ZT0 is lights on.
 - **Quiescence metrics:** percent of bins in each state (light, dark, 24 h), quiescent bouts per 24 h (runs of consecutive quiescent bins; empty bins break a bout), and mean bout length.
 - **Circadian metrics:** 24 h cosinor fit on hourly means (MESOR, amplitude, acrophase in ZT, R²), fraction of activity in the dark phase, M10, L5, relative amplitude, and intradaily variability. Interdaily stability is omitted because recordings cover only 2 days.
-- **Group comparisons:** each non-Wt genotype is compared with Wt in the same cohort (sex-matched when sex is split): Hedges' g with 95% CI and a two-sided Mann-Whitney U p-value (normal approximation with tie and continuity corrections). No multiple-comparison correction is applied; results are for exploration.
+- **Group comparisons:** each non-Wt genotype is compared with Wt in the same cohort (sex-matched when sex is split): Hedges' g with 95% CI and a two-sided Mann-Whitney U p-value (normal approximation with tie and continuity corrections). Hom and Hemi are pooled as KO by default (toggleable). No multiple-comparison correction is applied; results are for exploration.
 - **Exclusions:** when "Apply key exclusions" is on (default), mice whose key `Autoexcluder` starts with "Exclude" are dropped.
 - **QC flags:** mice with a warning or error in `qc_report` (other than `mouse_no_data`) are kept but outlined in red and listed above the plots.
 

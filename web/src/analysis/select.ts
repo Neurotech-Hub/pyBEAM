@@ -13,31 +13,54 @@ export interface Subject {
   group: string;
 }
 
+/** Raw key genotypes that are full loss-of-function (pooled as KO when collapseKo is on). */
+export const FULL_KO_GENOTYPES = new Set(["Hom", "Hemi"]);
+export const KO_LABEL = "KO";
+
+/** Analysis genotype label: Hom/Hemi → KO when collapsing. */
+export function analysisGenotype(raw: string, collapseKo: boolean): string {
+  return collapseKo && FULL_KO_GENOTYPES.has(raw) ? KO_LABEL : raw;
+}
+
+/** Genotype counts for filter chips, optionally pooling Hom+Hemi as KO. */
+export function displayGenotypeCounts(counts: Record<string, number>, collapseKo: boolean): { genotype: string; n: number }[] {
+  const pooled: Record<string, number> = {};
+  for (const [g, n] of Object.entries(counts)) {
+    const key = analysisGenotype(g, collapseKo);
+    pooled[key] = (pooled[key] ?? 0) + n;
+  }
+  return sortGenotypes(Object.keys(pooled)).map((genotype) => ({ genotype, n: pooled[genotype] }));
+}
+
 export const isExcluded = (m: Mouse) => /^exclude/i.test(m.Autoexcluder ?? "");
 
 /** Mice in a cohort that pass the global filters and have series data. */
 export function selectSubjects(
   mice: Mouse[],
   series: CohortSeries | undefined,
-  search: Pick<Search, "geno" | "sex" | "excl">,
+  search: Pick<Search, "geno" | "sex" | "excl" | "collapseKo">,
   cohort: string,
   opts: { ignoreGeno?: boolean } = {},
 ): Subject[] {
   if (!series) return [];
   const geno = opts.ignoreGeno ? [] : parseGeno(search.geno);
   const split = search.sex === "split";
+  const collapseKo = search.collapseKo;
   return mice
     .filter((m) => m.cohort === cohort && m.has_data && series.mice[m.Mouse_ID])
-    .filter((m) => !geno.length || geno.includes(m.Genotype))
+    .filter((m) => !geno.length || geno.includes(analysisGenotype(m.Genotype, collapseKo)))
     .filter((m) => search.sex === "all" || split || m.Sex === search.sex)
     .filter((m) => !search.excl || !isExcluded(m))
-    .map((m) => ({
-      mouse: m,
-      series: series.mice[m.Mouse_ID],
-      genotype: m.Genotype,
-      sex: m.Sex,
-      group: split ? `${m.Genotype} ${m.Sex}` : m.Genotype,
-    }))
+    .map((m) => {
+      const genotype = analysisGenotype(m.Genotype, collapseKo);
+      return {
+        mouse: m,
+        series: series.mice[m.Mouse_ID],
+        genotype,
+        sex: m.Sex,
+        group: split ? `${genotype} ${m.Sex}` : genotype,
+      };
+    })
     .sort((a, b) => groupOrder(a.group, b.group) || a.mouse.Mouse_ID.localeCompare(b.mouse.Mouse_ID));
 }
 

@@ -103,7 +103,7 @@ export function AcrossTab({ view }: { view: View }) {
       >
         <p className="mb-2 text-[11px] text-slate-500">
           Each row compares one genotype with Wt littermates in the same cohort (95% CI on g).
-          {def.thresholded && " Updates with the state thresholds."} Sex, day, and exclusion filters apply; the genotype filter does not.
+          {def.thresholded && " Updates with the state thresholds."} Sex, exclusion, and Hom/Hemi→KO collapse filters apply; the genotype filter does not.
         </p>
         {!all ? (
           <Empty>Loading all cohorts&hellip;</Empty>
