@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { CohortSeries, Mouse } from "../data/types";
 import { circadianMetrics, cosinor, intradailyVariability, m10l5 } from "./circadian";
+import { analysisGenotype, displayGenotypeCounts, selectSubjects } from "./select";
 import { AWAKE, QUIESCENT, UNDEFINED, classify, classifySeries, stateMetrics } from "./states";
 import { hedgesG, mannWhitney, mean, sem } from "./stats";
 import { dayMask, isLightSlot, makeSchedule, ztOf } from "./time";
@@ -82,5 +84,56 @@ describe("stats", () => {
     expect(mannWhitney([1, 2, 3], [4, 5, 6]).p).toBeCloseTo(0.0809, 3);
     // ties: U = 2.5, tie-corrected sigma = 3.3594, z = 1.4884
     expect(mannWhitney([1, 2, 2, 3], [2, 3, 4, 5]).p).toBeCloseTo(0.1366, 3);
+  });
+});
+
+describe("selectSubjects KO collapse", () => {
+  const emptySeries = { start: "", act: [], inact: [], light: [] };
+  const mouse = (id: string, genotype: string, sex = "M"): Mouse =>
+    ({
+      cohort: "c1",
+      Mouse_ID: id,
+      Genotype: genotype,
+      Sex: sex,
+      has_data: true,
+      Autoexcluder: "",
+    }) as Mouse;
+  const series: CohortSeries = {
+    cohort: "c1",
+    bin_min: 10,
+    mice: { a: emptySeries, b: emptySeries, c: emptySeries, d: emptySeries },
+  };
+  const mice = [mouse("a", "Wt"), mouse("b", "Hom", "F"), mouse("c", "Hemi", "M"), mouse("d", "Het")];
+
+  it("maps Hom and Hemi to KO when collapsing", () => {
+    expect(analysisGenotype("Hom", true)).toBe("KO");
+    expect(analysisGenotype("Hemi", true)).toBe("KO");
+    expect(analysisGenotype("Het", true)).toBe("Het");
+    expect(analysisGenotype("Hom", false)).toBe("Hom");
+  });
+
+  it("pools Hom and Hemi counts for filter chips", () => {
+    expect(displayGenotypeCounts({ Wt: 2, Hom: 3, Hemi: 4, Het: 1 }, true)).toEqual([
+      { genotype: "Wt", n: 2 },
+      { genotype: "Het", n: 1 },
+      { genotype: "KO", n: 7 },
+    ]);
+    expect(displayGenotypeCounts({ Wt: 2, Hom: 3, Hemi: 4 }, false).map((x) => x.genotype)).toEqual(["Wt", "Hemi", "Hom"]);
+  });
+
+  it("pools Hom and Hemi subjects as KO by default", () => {
+    const subjects = selectSubjects(mice, series, { geno: "", sex: "all", excl: true, collapseKo: true }, "c1");
+    expect(subjects.map((s) => s.genotype).sort()).toEqual(["Het", "KO", "KO", "Wt"]);
+    expect(subjects.filter((s) => s.genotype === "KO").map((s) => s.mouse.Mouse_ID).sort()).toEqual(["b", "c"]);
+  });
+
+  it("keeps Hom and Hemi separate when collapse is off", () => {
+    const subjects = selectSubjects(mice, series, { geno: "", sex: "all", excl: true, collapseKo: false }, "c1");
+    expect(subjects.map((s) => s.genotype).sort()).toEqual(["Hemi", "Het", "Hom", "Wt"]);
+  });
+
+  it("filters by KO against remapped genotypes", () => {
+    const subjects = selectSubjects(mice, series, { geno: "KO", sex: "all", excl: true, collapseKo: true }, "c1");
+    expect(subjects.map((s) => s.mouse.Mouse_ID).sort()).toEqual(["b", "c"]);
   });
 });

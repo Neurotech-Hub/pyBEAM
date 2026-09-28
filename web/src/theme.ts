@@ -1,10 +1,11 @@
-export const GENOTYPE_ORDER = ["Wt", "Het", "Hemi", "Hom"];
+export const GENOTYPE_ORDER = ["Wt", "Het", "KO", "Hemi", "Hom"];
 
 export const GENOTYPE_COLORS: Record<string, string> = {
   Wt: "#6b7280",
   Het: "#2563eb",
+  KO: "#ea580c",
   Hemi: "#1e3a8a",
-  Hom: "#ea580c",
+  Hom: "#c2410c",
 };
 
 export const genotypeColor = (g: string) => GENOTYPE_COLORS[g] ?? "#a855f7";

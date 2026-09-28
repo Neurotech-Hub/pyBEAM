@@ -8,6 +8,7 @@ export function PrintHeader({ view, title }: { view: View; title: string }) {
     search.tab !== "across" && cohortInfo && ["Cohort", `${cohortInfo.cohort} (${cohortInfo.gene})`],
     search.tab !== "across" && ["Genotypes", search.geno || "all"],
     ["Sex", search.sex],
+    ["Hom/Hemi as KO", search.collapseKo ? "collapsed" : "separate"],
     ["Days", search.days],
     ["Key exclusions", search.excl ? "applied" : "not applied"],
     ["Quiescent", `\u2264 ${pct(search.q)}`],

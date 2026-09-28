@@ -101,6 +101,7 @@ export const METHOD_NOTES: Record<string, MethodNoteDef> = {
     title: "Group comparisons",
     text:
       "Each genotype is compared with Wt littermates in the same cohort (sex-matched when sex is split). " +
+      "When Collapse Hom/Hemi as KO is on (the default), homozygous and hemizygous mice are pooled as a single full-knockout (KO) group. " +
       "Hedges' g is the bias-corrected standardized mean difference; p is a two-sided Mann-Whitney U test (normal approximation). " +
       "These are exploratory, uncorrected for multiple comparisons, and should guide rather than replace a pre-specified analysis.",
     refs: ["lakens2013"],

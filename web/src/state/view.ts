@@ -26,7 +26,7 @@ export function useView() {
 
   const subjects = useMemo(
     () => selectSubjects(mice.data ?? [], series.data, search, cohort),
-    [mice.data, series.data, search.geno, search.sex, search.excl, cohort],
+    [mice.data, series.data, search.geno, search.sex, search.excl, search.collapseKo, cohort],
   );
 
   const metrics = useMemo(

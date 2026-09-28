@@ -1,3 +1,4 @@
+import { displayGenotypeCounts } from "../analysis/select";
 import { parseGeno, type Search } from "../state/search";
 import { useSetSearch } from "../state/route";
 import type { View } from "../state/view";
@@ -8,7 +9,8 @@ import { ThresholdControl } from "./ThresholdControl";
 export function FilterBar({ view }: { view: View }) {
   const { search, index, cohort, cohortInfo } = view;
   const setSearch = useSetSearch();
-  const genotypes = sortGenotypes(Object.keys(cohortInfo?.genotypes ?? {}));
+  const genotypeChips = displayGenotypeCounts(cohortInfo?.genotypes ?? {}, search.collapseKo);
+  const genotypes = genotypeChips.map((c) => c.genotype);
   const selected = parseGeno(search.geno);
   const isOn = (g: string) => !selected.length || selected.includes(g);
 
@@ -39,7 +41,7 @@ export function FilterBar({ view }: { view: View }) {
       )}
       {showCohort && genotypes.length > 0 && (
         <div className="flex items-center gap-1">
-          {genotypes.map((g) => (
+          {genotypeChips.map(({ genotype: g, n }) => (
             <button
               key={g}
               type="button"
@@ -49,7 +51,7 @@ export function FilterBar({ view }: { view: View }) {
               }`}
             >
               <span className="h-2 w-2 rounded-full" style={{ background: isOn(g) ? genotypeColor(g) : "#cbd5e1" }} />
-              {g} <span className="text-slate-400">{cohortInfo?.genotypes[g]}</span>
+              {g} <span className="text-slate-400">{n}</span>
             </button>
           ))}
         </div>
@@ -65,16 +67,17 @@ export function FilterBar({ view }: { view: View }) {
           { value: "split", label: "Split", title: "Compare within sex" },
         ]}
       />
-      <Segmented<Search["days"]>
-        label="Days"
-        value={search.days}
-        onChange={(days) => setSearch({ days })}
-        options={[
-          { value: "both", label: "Both" },
-          { value: "1", label: "1" },
-          { value: "2", label: "2" },
-        ]}
-      />
+      <label
+        className="flex items-center gap-1 text-[11px] text-slate-600"
+        title="Pool Hom and Hemi as full knockouts (KO) for plots and comparisons"
+      >
+        <input
+          type="checkbox"
+          checked={search.collapseKo}
+          onChange={(e) => setSearch({ collapseKo: e.target.checked, geno: "" })}
+        />
+        Collapse Hom/Hemi as KO
+      </label>
       <label className="flex items-center gap-1 text-[11px] text-slate-600" title="Drop mice whose key Autoexcluder starts with 'Exclude'">
         <input type="checkbox" checked={search.excl} onChange={(e) => setSearch({ excl: e.target.checked })} />
         Apply key exclusions
