@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-feature-settings: "tnum";
+  -webkit-font-smoothing: antialiased;
+}
+
+figure,
+svg {
+  max-width: 100%;
+}
+
+details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: letter landscape;
+    margin: 10mm;
+  }
+  html,
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .panel {
+    break-inside: avoid;
+    border-color: #cbd5e1 !important;
+    margin-bottom: 6px;
+  }
+  .min-h-screen {
+    min-height: 0 !important;
+    background: white !important;
+  }
+  table {
+    font-size: 9px;
+  }
+}

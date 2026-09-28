@@ -1,0 +1,71 @@
+# Root of the Box "Behavior" folder. Override with the PYBEAM_BOX_ROOT environment variable.
+box_root: "/Users/gaidica/Library/CloudStorage/Box-Box/SSPsyGene - WashU Mouse Assay Center/Behavior"
+
+# Where committed intermediate data is written (relative to the repo root).
+output_dir: data
+
+# Cohort directories look like NNN_GENE; cohorts numbered below min_cohort (e.g. 000_* pilots) are ignored.
+cohort_pattern: '^(\d{3})_(.+)$'
+min_cohort: 1
+
+# L1 zips live here, relative to each cohort directory.
+l1_subdir: 3_BEAM/L1
+
+# Zip file names matching any of these regexes (case-insensitive) are skipped.
+skip_zip_patterns:
+  - '^OLD'
+
+# Columns every L1 CSV is expected to contain.
+expected_l1_columns:
+  - datetime
+  - millis
+  - device_id
+  - library_version
+  - battery_voltage
+  - temperature_c
+  - pressure_hpa
+  - humidity_percent
+  - lux
+  - activity_count
+  - activity_percent
+  - inactivity_period_s
+  - inactivity_count
+  - inactivity_percent
+  - min_free_heap
+  - reboot
+  - BEAM
+  - file_date
+  - source_file
+  - Mouse_ID
+
+# Columns kept in data/beam_l1/<cohort>.csv.
+series_columns:
+  - datetime
+  - BEAM
+  - Mouse_ID
+  - activity_count
+  - activity_percent
+  - inactivity_count
+  - inactivity_percent
+  - lux
+  - temperature_c
+
+# Facility light schedule (clock time). Lights-on is detected per mouse from lux > 0 and compared to this.
+lights_on: "06:00"
+lights_off: "18:00"
+light_tolerance_min: 30
+
+# Web export (data/web/): bin size of the aligned grid, and the number of empty slots per mouse before QC flags it.
+web_bin_min: 10
+grid_gap_threshold: 12
+
+# Key columns (after stripping "$") carried into data/mice.csv. Missing columns are left blank.
+key_columns:
+  - Mouse_ID
+  - Gene
+  - Gene_ID
+  - Genotype
+  - Sex
+  - BEAM
+  - DOB
+  - Autoexcluder

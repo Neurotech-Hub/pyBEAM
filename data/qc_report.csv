@@ -1,0 +1,85 @@
+level,check,cohort,mouse_id,source,detail
+info,key_no_autoexcluder,001_MYT1L,,MYT1L_001_Key.xlsx,
+info,zip_skipped,001_MYT1L,,OLDMYT1L_001_BEAM.zip,matches skip_zip_patterns
+info,key_no_autoexcluder,002_DNMT3A,,DNMT3a_002_Key.xlsx,
+warning,light_schedule_deviation,002_DNMT3A,DNMT3A_002_29_20,,detected on=06:05 off=16:48; expected 06:00-18:00
+warning,mouse_no_data,002_DNMT3A,DNMT3A_002_20_16,,in key but no L1 file
+warning,mouse_no_data,002_DNMT3A,DNMT3A_002_25_25,,in key but no L1 file
+warning,mouse_no_data,002_DNMT3A,DNMT3A_002_27_40,,in key but no L1 file
+info,key_ignored,003_NF1,,003_NF1_Cohort_Key_RunOrder.xlsx,does not match *_NNN_Key.xlsx
+info,key_no_autoexcluder,003_NF1,,NF1_003_Key.xlsx,
+warning,light_schedule_deviation,003_NF1,NF1_003_144_28,,detected on=06:01 off=13:03; expected 06:00-18:00
+warning,light_schedule_deviation,003_NF1,NF1_003_146_43,,detected on=08:52 off=17:20; expected 06:00-18:00
+warning,light_schedule_deviation,003_NF1,NF1_003_147_2,,detected on=08:07 off=17:57; expected 06:00-18:00
+info,key_no_autoexcluder,004_SHANK3B,,SHANK3B_004_Key.xlsx,
+warning,mouse_no_data,006_WAC,WAC_006_198_77,,in key but no L1 file
+warning,key_autoexcluder_error,010_ZNF292,ZNF292_010_472_19,ZNF292_010_Key.xlsx,#INVALID OPERATION
+warning,key_autoexcluder_error,013_KCND3,KCND3_013_647_52,KCND3_013_Key.xlsx,#INVALID OPERATION
+info,key_ignored,016_FBN1,,FBN1_016_Key_with_exclusions.xlsx,does not match *_NNN_Key.xlsx
+warning,key_autoexcluder_error,016_FBN1,FBN1_016_710_87,FBN1_016_Key.xlsx,#INVALID OPERATION
+warning,key_autoexcluder_error,018_SMARCC2,SMARCC2_018_778_62,SMARCC2_018_Key.xlsx,#INVALID OPERATION
+info,key_ignored,019_SCN1A6J,,SCN1A6J_019_Key_NoSIweight.xlsx,does not match *_NNN_Key.xlsx
+warning,mouse_no_data,019_SCN1A6J,SCN1A6J_019_748_58,,in key but no L1 file
+warning,mouse_no_data,021_ZBTB10,ZBTB10_021_845_24,,in key but no L1 file
+warning,key_autoexcluder_error,022_ZBTB21,ZBTB21_022_875_21,ZBTB21_022_Key.xlsx,#INVALID OPERATION
+warning,l1_empty,022_ZBTB21,,,no usable L1 zip
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_863_45,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_863_46,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_863_47,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_863_48,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_863_49,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_863_50,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_870_24,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_870_25,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_871_26,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_871_27,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_871_28,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_871_29,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_871_30,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_871_31,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_871_32,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_872_33,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_872_35,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_872_36,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_872_37,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_872_38,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_872_39,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_1,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_10,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_2,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_3,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_4,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_5,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_6,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_7,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_873_9,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_874_11,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_874_13,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_874_14,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_874_15,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_874_16,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_875_17,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_875_18,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_875_19,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_875_20,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_875_21,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_875_22,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_875_23,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_876_40,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_876_41,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_876_42,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_876_44,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_877_52,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_896_58,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_896_59,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_896_63,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_897_68,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_898_73,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_912_77,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_912_80,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_917_86,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_917_88,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_923_83,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_923_84,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_945_5,,in key but no L1 file
+warning,mouse_no_data,022_ZBTB21,ZBTB21_022_947_11,,in key but no L1 file
