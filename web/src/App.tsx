@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FilterBar } from "./components/FilterBar";
-import { MethodsDrawer } from "./components/MethodNote";
+import { MethodsPage } from "./components/MethodNote";
 import { PrintHeader } from "./components/PrintHeader";
 import { useSetSearch } from "./state/route";
 import { TABS, type Tab } from "./state/search";
@@ -35,12 +35,17 @@ export default function App() {
   };
 
   const qcCount = view.qc.filter((r) => r.level !== "info").length;
+  const isMethods = search.tab === "methods";
+  const openMethods = () => {
+    setSearch({ tab: "methods" }, { push: true });
+    window.scrollTo(0, 0);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-[12px] text-slate-800">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-[12px] text-slate-800">
       <header className="no-print flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-200 bg-white px-4 py-2">
         <h1 className="whitespace-nowrap text-[14px] font-semibold tracking-tight">
-          BEAM <span className="font-normal text-slate-500">sleep &amp; circadian explorer</span>
+          BEAM <span className="font-normal text-slate-500">explorer</span>
         </h1>
         <nav className="flex gap-0.5">
           {TABS.map((t) => (
@@ -60,20 +65,18 @@ export default function App() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3 whitespace-nowrap text-[11px] text-slate-500">
-          {index && <span title="Latest Box zip modification time">Box data {index.box_updated.slice(0, 10)}</span>}
-          <MethodsDrawer />
+          {index && <span title="Latest Box zip modification time">Last updated {index.box_updated.slice(0, 10)}</span>}
           <button type="button" onClick={copyLink} className="rounded border border-slate-300 px-2 py-0.5 hover:bg-slate-100">
             {copied ? "Copied" : "Copy link"}
           </button>
-          <button type="button" onClick={() => window.print()} className="rounded border border-slate-300 px-2 py-0.5 hover:bg-slate-100">
-            Print
-          </button>
         </div>
       </header>
-      <FilterBar view={view} />
-      <PrintHeader view={view} title={TAB_LABELS[search.tab]} />
-      <main className="p-4">
-        {view.error ? (
+      {!isMethods && <FilterBar view={view} />}
+      {!isMethods && <PrintHeader view={view} title={TAB_LABELS[search.tab as Tab]} />}
+      <main className="flex-1 p-4">
+        {isMethods ? (
+          <MethodsPage />
+        ) : view.error ? (
           <div className="rounded border border-red-200 bg-red-50 p-3 text-red-800">{String(view.error)}</div>
         ) : view.loading || !view.schedule ? (
           <div className="py-10 text-center text-slate-400">Loading data&hellip;</div>
@@ -86,6 +89,16 @@ export default function App() {
           </>
         )}
       </main>
+      <footer className="no-print px-4 pb-4 pt-2 text-center text-[11px] text-slate-400">
+        by Matt Gaidica, PhD &bull;{" "}
+        <a href="https://github.com/Neurotech-Hub/pyBEAM" target="_blank" rel="noreferrer" className="hover:text-slate-600 hover:underline">
+          View GitHub Repo
+        </a>{" "}
+        &bull;{" "}
+        <button type="button" onClick={openMethods} className="hover:text-slate-600 hover:underline">
+          Methods
+        </button>
+      </footer>
     </div>
   );
 }

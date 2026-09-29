@@ -1,3 +1,4 @@
+import type { Basis } from "../state/search";
 import { isLightSlot, type Schedule } from "./time";
 
 export const QUIESCENT = 0;
@@ -6,16 +7,25 @@ export const AWAKE = 2;
 export type State = typeof QUIESCENT | typeof UNDEFINED | typeof AWAKE;
 export const STATE_LABELS = ["Quiescent", "Undefined", "Awake"] as const;
 
-/** Classify one bin. act is permille; q and w are fractions (quiescent if act <= q, awake if act >= w). */
-export function classify(act: number | null, q: number, w: number): State | null {
-  if (act == null) return null;
-  const x = act / 1000;
+/**
+ * Classify one bin. v is permille; q and w are fractions.
+ * basis "act": quiescent if v <= q, awake if v >= w. basis "inact": quiescent if v >= q, awake if v <= w.
+ */
+export function classify(v: number | null, q: number, w: number, basis: Basis = "act"): State | null {
+  if (v == null) return null;
+  const x = v / 1000;
+  if (basis === "inact") {
+    if (x >= q) return QUIESCENT;
+    if (x <= w) return AWAKE;
+    return UNDEFINED;
+  }
   if (x <= q) return QUIESCENT;
   if (x >= w) return AWAKE;
   return UNDEFINED;
 }
 
-export const classifySeries = (act: (number | null)[], q: number, w: number) => act.map((a) => classify(a, q, w));
+export const classifySeries = (values: (number | null)[], q: number, w: number, basis: Basis = "act") =>
+  values.map((v) => classify(v, q, w, basis));
 
 export type Phase = "light" | "dark" | "all";
 
@@ -26,24 +36,34 @@ export interface StateMetrics {
   qBoutsPerDay: number;
   /** Mean quiescent bout duration in minutes. */
   qBoutMeanMin: number;
+  /** Quiescent-to-awake transitions (undefined bins skipped) per hour of quiescence. */
+  qaPerQHour: number;
 }
 
-/** State percentages and quiescent bouts over the slots where mask is true. Empty slots break bouts. */
+/**
+ * State percentages, quiescent bouts, and quiescent-to-awake transitions over the slots where mask is true.
+ * Empty slots break bouts and reset transition tracking.
+ */
 export function stateMetrics(states: (State | null)[], mask: boolean[], s: Schedule): StateMetrics {
   const counts: Record<Phase, [number, number, number]> = { light: [0, 0, 0], dark: [0, 0, 0], all: [0, 0, 0] };
   const bouts: number[] = [];
   let run = 0;
   let valid = 0;
+  let transitions = 0;
+  let lastDefined: State | null = null;
   for (let i = 0; i < states.length; i++) {
     const st = mask[i] ? states[i] : null;
     if (st == null) {
       if (run) bouts.push(run);
       run = 0;
+      lastDefined = null;
       continue;
     }
     valid++;
     counts.all[st]++;
     counts[isLightSlot(s, i) ? "light" : "dark"][st]++;
+    if (st === AWAKE && lastDefined === QUIESCENT) transitions++;
+    if (st !== UNDEFINED) lastDefined = st;
     if (st === QUIESCENT) run++;
     else if (run) {
       bouts.push(run);
@@ -57,7 +77,9 @@ export function stateMetrics(states: (State | null)[], mask: boolean[], s: Sched
     return n ? [(100 * c[0]) / n, (100 * c[1]) / n, (100 * c[2]) / n] : [NaN, NaN, NaN];
   };
   const days = (valid * s.binMin) / 1440;
+  const qHours = (counts.all[QUIESCENT] * s.binMin) / 60;
   return {
+    qaPerQHour: qHours ? transitions / qHours : NaN,
     pct: { light: toPct(counts.light), dark: toPct(counts.dark), all: toPct(counts.all) },
     qBoutsPerDay: days ? bouts.length / days : NaN,
     qBoutMeanMin: bouts.length ? (bouts.reduce((a, b) => a + b, 0) / bouts.length) * s.binMin : NaN,

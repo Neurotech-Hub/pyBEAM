@@ -4,6 +4,7 @@ import { qcFlags, selectSubjects } from "../analysis/select";
 import { dayMask, makeSchedule } from "../analysis/time";
 import { useCohortSeries, useIndex, useMice, useQc } from "../data/load";
 import { useSearch } from "./route";
+import { thresholds } from "./search";
 
 /** Everything a tab needs for the currently selected cohort and filters. */
 export function useView() {
@@ -29,9 +30,10 @@ export function useView() {
     [mice.data, series.data, search.geno, search.sex, search.excl, search.collapseKo, cohort],
   );
 
+  const thr = thresholds(search);
   const metrics = useMemo(
-    () => (schedule ? subjects.map((s) => mouseMetrics(s.series.act, mask, schedule, search.q, search.w)) : []),
-    [subjects, mask, schedule, search.q, search.w],
+    () => (schedule ? subjects.map((s) => mouseMetrics(s.series, mask, schedule, thr)) : []),
+    [subjects, mask, schedule, thr.basis, thr.q, thr.w],
   );
 
   const loading = index.isLoading || mice.isLoading || qc.isLoading || series.isLoading;

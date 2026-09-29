@@ -6,8 +6,9 @@ import { useAllSeries } from "../data/load";
 import { Legend, genotypeDotItems } from "../components/Legend";
 import { MethodNote } from "../components/MethodNote";
 import { PlotFigure } from "../components/PlotFigure";
-import { Empty, Panel, fmt, pText } from "../components/ui";
+import { Empty, Panel, Segmented, fmt, pText } from "../components/ui";
 import { useSetSearch } from "../state/route";
+import { thresholds, type Search } from "../state/search";
 import type { View } from "../state/view";
 import { genotypeColor } from "../theme";
 
@@ -32,12 +33,15 @@ export function AcrossTab({ view }: { view: View }) {
         group: s.group,
         genotype: s.genotype,
         sex: s.sex,
-        value: (def.thresholded ? mouseStateMetrics : mouseMetrics)(s.series.act, mask, schedule, search.q, search.w)[def.id],
+        value: (def.thresholded ? mouseStateMetrics : mouseMetrics)(s.series, mask, schedule, thresholds(search))[def.id],
       }));
       for (const cmp of compareToWt(values, split)) {
         out.push({ ...cmp, cohort: c.cohort, label: `${c.number} ${c.gene} \u00b7 ${cmp.group}` });
       }
     }
+    const last = (v: number) => (Number.isFinite(v) ? v : Infinity);
+    if (search.sort === "g") out.sort((a, b) => last(-a.g) - last(-b.g));
+    else if (search.sort === "p") out.sort((a, b) => last(a.p) - last(b.p));
     return out;
   }, [all, cohorts, mice, search, schedule, mask, split, def]);
 
@@ -77,6 +81,18 @@ export function AcrossTab({ view }: { view: View }) {
 
   return (
     <div className="space-y-3">
+      <div className="no-print flex">
+        <Segmented<Search["sort"]>
+          label="Sort by"
+          value={search.sort}
+          onChange={(sort) => setSearch({ sort })}
+          options={[
+            { value: "subject", label: "Subject", title: "Cohort, then genotype" },
+            { value: "g", label: "Hedges", title: "Hedges' g, largest first" },
+            { value: "p", label: "P-value", title: "p, smallest first" },
+          ]}
+        />
+      </div>
       <Panel
         title={
           <span className="flex items-center gap-1.5">

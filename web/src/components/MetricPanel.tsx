@@ -117,9 +117,19 @@ export function MetricLegend({ view }: { view: View }) {
   return <Legend items={items} className="mb-1" />;
 }
 
-export function MetricPanel({ view, ids, domain }: { view: View; ids: string[]; domain?: [number, number] }) {
+export function MetricPanel({
+  view,
+  ids,
+  domain,
+  cols = "grid-cols-[repeat(auto-fill,minmax(200px,1fr))]",
+}: {
+  view: View;
+  ids: string[];
+  domain?: [number, number];
+  cols?: string;
+}) {
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-1">
+    <div className={`grid ${cols} gap-1`}>
       {ids.map((id) => (
         <MetricCell key={id} view={view} id={id} domain={domain} />
       ))}

@@ -1,9 +1,11 @@
+import { thresholds } from "../state/search";
 import type { View } from "../state/view";
 
 /** Shown only when printing: the active filters so an exported page is self-describing. */
 export function PrintHeader({ view, title }: { view: View; title: string }) {
   const { search, cohortInfo, index, subjects } = view;
   const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
+  const t = thresholds(search);
   const items = [
     search.tab !== "across" && cohortInfo && ["Cohort", `${cohortInfo.cohort} (${cohortInfo.gene})`],
     search.tab !== "across" && ["Genotypes", search.geno || "all"],
@@ -11,8 +13,11 @@ export function PrintHeader({ view, title }: { view: View; title: string }) {
     ["Hom/Hemi as KO", search.collapseKo ? "collapsed" : "separate"],
     ["Days", search.days],
     ["Key exclusions", search.excl ? "applied" : "not applied"],
-    ["Quiescent", `\u2264 ${pct(search.q)}`],
-    ["Awake", `\u2265 ${pct(search.w)}`],
+    ["State basis", t.basis === "inact" ? "inactivity %" : "activity %"],
+    ["Quiescent", `${t.basis === "inact" ? "\u2265" : "\u2264"} ${pct(t.q)}`],
+    search.noU
+      ? ["Awake", `${t.basis === "inact" ? "<" : ">"} ${pct(t.w)} (Undefined removed)`]
+      : ["Awake", `${t.basis === "inact" ? "\u2264" : "\u2265"} ${pct(t.w)}`],
     search.tab !== "across" && ["Mice", String(subjects.length)],
     index && ["Box data", index.box_updated],
   ].filter(Boolean) as [string, string][];

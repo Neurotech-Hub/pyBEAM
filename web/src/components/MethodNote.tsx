@@ -1,5 +1,5 @@
 import * as Popover from "@radix-ui/react-popover";
-import { METHOD_NOTES, REFERENCES } from "../methods";
+import { METHOD_NOTES, METHODS_ORDER, REFERENCES } from "../methods";
 
 function RefList({ ids }: { ids: string[] }) {
   return (
@@ -46,28 +46,23 @@ export function MethodNote({ id }: { id: keyof typeof METHOD_NOTES }) {
   );
 }
 
-/** Header button listing all method notes and references in one place. */
-export function MethodsDrawer() {
+/** Full-page list of every method note, each with its references, followed by all references. */
+export function MethodsPage() {
   return (
-    <Popover.Root>
-      <Popover.Trigger className="rounded border border-slate-300 px-2 py-0.5 hover:bg-slate-100">Methods</Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          side="bottom"
-          align="end"
-          sideOffset={4}
-          className="z-50 max-h-[80vh] w-[28rem] overflow-y-auto rounded-md border border-slate-200 bg-white p-4 text-[11.5px] leading-snug text-slate-700 shadow-lg"
-        >
-          {Object.entries(METHOD_NOTES).map(([id, n]) => (
-            <div key={id} className="mb-3">
-              <div className="font-semibold">{n.title}</div>
-              <p>{n.text}</p>
-            </div>
-          ))}
-          <div className="border-t border-slate-200 pt-2 font-semibold">References</div>
-          <RefList ids={Object.keys(REFERENCES)} />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+    <article className="mx-auto max-w-3xl rounded-md border border-slate-200 bg-white p-6 text-[13px] leading-relaxed text-slate-700">
+      <h2 className="mb-4 text-[16px] font-semibold text-slate-800">Methods</h2>
+      {METHODS_ORDER.map((id) => {
+        const n = METHOD_NOTES[id];
+        return (
+          <section key={id} className="mb-5">
+            <h3 className="mb-1 text-[13px] font-semibold text-slate-800">{n.title}</h3>
+            <p>{n.text}</p>
+            {n.refs.length > 0 && <RefList ids={n.refs} />}
+          </section>
+        );
+      })}
+      <h3 className="mb-1 border-t border-slate-200 pt-4 text-[13px] font-semibold text-slate-800">References</h3>
+      <RefList ids={Object.keys(REFERENCES)} />
+    </article>
   );
 }

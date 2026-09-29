@@ -82,7 +82,7 @@ export function FilterBar({ view }: { view: View }) {
         <input type="checkbox" checked={search.excl} onChange={(e) => setSearch({ excl: e.target.checked })} />
         Apply key exclusions
       </label>
-      <div className="ml-auto">
+      <div className="basis-full">
         <ThresholdControl />
       </div>
     </div>

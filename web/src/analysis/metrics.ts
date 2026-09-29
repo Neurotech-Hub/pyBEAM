@@ -1,5 +1,7 @@
 import { circadianMetrics } from "./circadian";
 import { classifySeries, stateMetrics } from "./states";
+import type { MouseSeries } from "../data/types";
+import type { Thresholds } from "../state/search";
 import type { Schedule } from "./time";
 
 export type MetricGroup = "states" | "circadian";
@@ -35,6 +37,7 @@ export const METRICS: MetricDef[] = [
   statePhase("Awake", "all", "A 24h"),
   { id: "q_bouts", label: "Quiescent bouts per day", short: "Q bouts/d", unit: "bouts/24 h", group: "states", thresholded: true },
   { id: "q_bout_len", label: "Mean quiescent bout", short: "Q bout len", unit: "min", group: "states", thresholded: true },
+  { id: "qa_rate", label: "Quiescent-to-awake transition rate", short: "Q\u2192A rate", unit: "per h quiescent", group: "states", thresholded: true },
   { id: "mean_act", label: "Mean activity", short: "Mean act", unit: "fraction", group: "circadian", thresholded: false },
   { id: "dark_frac", label: "Activity in dark phase", short: "Dark frac", unit: "fraction", group: "circadian", thresholded: false },
   { id: "mesor", label: "Cosinor MESOR", short: "MESOR", unit: "fraction", group: "circadian", thresholded: false },
@@ -49,10 +52,10 @@ export const METRICS: MetricDef[] = [
 
 export const METRIC_BY_ID = Object.fromEntries(METRICS.map((m) => [m.id, m]));
 
-/** Compute every metric for one mouse. */
-export function mouseMetrics(act: (number | null)[], mask: boolean[], s: Schedule, q: number, w: number) {
-  const st = stateMetrics(classifySeries(act, q, w), mask, s);
-  const c = circadianMetrics(act, mask, s);
+/** Compute every metric for one mouse. States use the thresholds' basis; circadian metrics always use activity. */
+export function mouseMetrics(series: MouseSeries, mask: boolean[], s: Schedule, t: Thresholds) {
+  const st = stateMetrics(classifySeries(series[t.basis], t.q, t.w, t.basis), mask, s);
+  const c = circadianMetrics(series.act, mask, s);
   return {
     ...stateValues(st),
     mean_act: c.meanAct,
@@ -75,9 +78,10 @@ export function stateValues(st: ReturnType<typeof stateMetrics>): Record<string,
   });
   out.q_bouts = st.qBoutsPerDay;
   out.q_bout_len = st.qBoutMeanMin;
+  out.qa_rate = st.qaPerQHour;
   return out;
 }
 
 /** Only the threshold-dependent metrics (cheaper; used for the sensitivity sweep). */
-export const mouseStateMetrics = (act: (number | null)[], mask: boolean[], s: Schedule, q: number, w: number) =>
-  stateValues(stateMetrics(classifySeries(act, q, w), mask, s));
+export const mouseStateMetrics = (series: MouseSeries, mask: boolean[], s: Schedule, t: Thresholds) =>
+  stateValues(stateMetrics(classifySeries(series[t.basis], t.q, t.w, t.basis), mask, s));

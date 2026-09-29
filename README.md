@@ -54,20 +54,20 @@ npm run preview # serve web/dist locally
 
 The site base path defaults to `/pyBEAM/`; set `BASE_PATH` (for example `BASE_PATH=/other-name/ npm run build`) to build for a different path.
 
-- **Tabs:** Quiescence (state thresholds, activity distribution, state raster, time-in-state and bout metrics, threshold sensitivity map), Circadian (group activity by clock time or ZT, cosinor and non-parametric metrics, double-plotted actograms), Across cohorts (Hedges' g vs Wt for any metric in every cohort), and Data & QC (cohort summary, mouse table, `qc_report`).
-- **Filters:** cohort, genotype, sex (all, M, F, or split into genotype × sex groups), optional collapse of Hom and Hemi into a single KO group (on by default), key exclusions, and the two state thresholds. Analysis uses both recording days.
+- **Tabs:** Quiescence (state thresholds, activity or inactivity distribution, state raster, time-in-state and bout metrics, threshold sensitivity map), Circadian (group activity by clock time or ZT, cosinor and non-parametric metrics, double-plotted actograms), Across cohorts (Hedges' g vs Wt for any metric in every cohort, sortable by cohort, g, or p), and Data & QC (cohort summary, mouse table, `qc_report`).
+- **Filters:** cohort, genotype, sex (all, M, F, or split into genotype × sex groups), optional collapse of Hom and Hemi into a single KO group (on by default), key exclusions, the state basis (activity % or inactivity %), and the two state thresholds. Analysis uses both recording days.
 - **Shareable state:** every filter and threshold lives in the URL hash (for example `#/?cohort=009_C3&q=0.05&w=0.15&tab=circadian`); defaults are omitted. "Copy link" copies the current view.
-- **Print:** the Print button (or the browser print dialog) hides controls and adds a header with the active filters, thresholds, data date, and link. Legends are part of the page, so they print with each plot.
-- **Methods:** the "i" buttons and the Methods menu give short method notes with references.
+- **Print:** the browser print dialog hides controls and adds a header with the active filters, thresholds, data date, and link. Legends are part of the page, so they print with each plot.
+- **Methods:** the "i" buttons give short method notes with references. The Methods page (footer link, `#/?tab=methods`) lists every method note with its references, followed by the full reference list.
 
 ### Analysis definitions
 
 All analysis runs in the browser on the 10-minute grid (`web/src/analysis/`, unit-tested in `analysis.test.ts`).
 
-- **States:** each bin is quiescent if `activity_percent <= q`, awake if `>= w`, and undefined in between. Defaults are `q = 5%` and `w = 15%` (an undefined band of 10% ± 5%); both are adjustable.
+- **States:** by default ("By Activity %"), each bin is quiescent if `activity_percent <= q`, awake if `>= w`, and undefined in between. Defaults are `q = 5%` and `w = 15%` (an undefined band of 10% ± 5%); both are adjustable. With "By Inactivity %", the comparisons flip: quiescent if `inactivity_percent >= qi`, awake if `<= wi`, with defaults `qi = 95%` and `wi = 85%`. Each basis keeps its own thresholds. "Remove Undefined" replaces the two thresholds with one per basis (`t = 10%` activity, `ti = 90%` inactivity by default): bins at or past it are quiescent and all others awake. Circadian metrics always use `activity_percent`.
 - **Light and dark phase:** lights on 06:00 to 18:00 (`lights_on`/`lights_off` in `config.yaml`, confirmed from `lux > 0`). ZT0 is lights on.
-- **Quiescence metrics:** percent of bins in each state (light, dark, 24 h), quiescent bouts per 24 h (runs of consecutive quiescent bins; empty bins break a bout), and mean bout length.
-- **Circadian metrics:** 24 h cosinor fit on hourly means (MESOR, amplitude, acrophase in ZT, R²), fraction of activity in the dark phase, M10, L5, relative amplitude, and intradaily variability. Interdaily stability is omitted because recordings cover only 2 days.
+- **Quiescence metrics:** percent of bins in each state (light, dark, 24 h), quiescent bouts per 24 h (runs of consecutive quiescent bins; empty bins break a bout), mean bout length, and the quiescent-to-awake transition rate (switches from a quiescent bin to an awake bin, skipping undefined bins, per hour of quiescence; empty bins reset it).
+- **Circadian metrics:** 24 h cosinor fit on every valid 10-minute bin (MESOR, amplitude, acrophase in ZT, R²), mean activity, fraction of activity in the dark phase, and, from hourly means, M10, L5, relative amplitude, and intradaily variability. Interdaily stability is omitted because recordings cover only 2 days.
 - **Group comparisons:** each non-Wt genotype is compared with Wt in the same cohort (sex-matched when sex is split): Hedges' g with 95% CI and a two-sided Mann-Whitney U p-value (normal approximation with tie and continuity corrections). Hom and Hemi are pooled as KO by default (toggleable). No multiple-comparison correction is applied; results are for exploration.
 - **Exclusions:** when "Apply key exclusions" is on (default), mice whose key `Autoexcluder` starts with "Exclude" are dropped.
 - **QC flags:** mice with a warning or error in `qc_report` (other than `mouse_no_data`) are kept but outlined in red and listed above the plots.
