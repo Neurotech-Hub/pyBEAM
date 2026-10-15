@@ -38,26 +38,53 @@ export interface StateMetrics {
   qBoutMeanMin: number;
   /** Quiescent-to-awake transitions (undefined bins skipped) per hour of quiescence. */
   qaPerQHour: number;
+  /** Mean awake bout (run of consecutive awake bins) duration in minutes. */
+  aBoutMeanMin: number;
+  /** Median onset-to-onset interval between consecutive awake bouts, in hours. */
+  ibiMedianH: number;
 }
 
+const median = (x: number[]) => {
+  if (!x.length) return NaN;
+  const v = [...x].sort((a, b) => a - b);
+  const m = v.length >> 1;
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+};
+
 /**
- * State percentages, quiescent bouts, and quiescent-to-awake transitions over the slots where mask is true.
- * Empty slots break bouts and reset transition tracking.
+ * State percentages, quiescent and awake bouts, inter-bout intervals, and quiescent-to-awake transitions
+ * over the slots where mask is true. Empty slots break bouts and reset transition and interval tracking.
  */
 export function stateMetrics(states: (State | null)[], mask: boolean[], s: Schedule): StateMetrics {
   const counts: Record<Phase, [number, number, number]> = { light: [0, 0, 0], dark: [0, 0, 0], all: [0, 0, 0] };
   const bouts: number[] = [];
+  const awakeBouts: number[] = [];
+  const ibis: number[] = [];
   let run = 0;
+  let aRun = 0;
+  let lastOnset: number | null = null;
   let valid = 0;
   let transitions = 0;
   let lastDefined: State | null = null;
   for (let i = 0; i < states.length; i++) {
     const st = mask[i] ? states[i] : null;
+    if (st !== AWAKE && aRun) {
+      awakeBouts.push(aRun);
+      aRun = 0;
+    }
     if (st == null) {
       if (run) bouts.push(run);
       run = 0;
       lastDefined = null;
+      lastOnset = null;
       continue;
+    }
+    if (st === AWAKE) {
+      if (!aRun) {
+        if (lastOnset != null) ibis.push(((i - lastOnset) * s.binMin) / 60);
+        lastOnset = i;
+      }
+      aRun++;
     }
     valid++;
     counts.all[st]++;
@@ -71,6 +98,7 @@ export function stateMetrics(states: (State | null)[], mask: boolean[], s: Sched
     }
   }
   if (run) bouts.push(run);
+  if (aRun) awakeBouts.push(aRun);
 
   const toPct = (c: [number, number, number]): [number, number, number] => {
     const n = c[0] + c[1] + c[2];
@@ -83,5 +111,7 @@ export function stateMetrics(states: (State | null)[], mask: boolean[], s: Sched
     pct: { light: toPct(counts.light), dark: toPct(counts.dark), all: toPct(counts.all) },
     qBoutsPerDay: days ? bouts.length / days : NaN,
     qBoutMeanMin: bouts.length ? (bouts.reduce((a, b) => a + b, 0) / bouts.length) * s.binMin : NaN,
+    aBoutMeanMin: awakeBouts.length ? (awakeBouts.reduce((a, b) => a + b, 0) / awakeBouts.length) * s.binMin : NaN,
+    ibiMedianH: median(ibis),
   };
 }

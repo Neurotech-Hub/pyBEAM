@@ -32,8 +32,8 @@ export function useView() {
 
   const thr = thresholds(search);
   const metrics = useMemo(
-    () => (schedule ? subjects.map((s) => mouseMetrics(s.series, mask, schedule, thr)) : []),
-    [subjects, mask, schedule, thr.basis, thr.q, thr.w],
+    () => (schedule ? subjects.map((s) => mouseMetrics(s.series, mask, schedule, thr, search.udt)) : []),
+    [subjects, mask, schedule, thr.basis, thr.q, thr.w, search.udt],
   );
 
   const loading = index.isLoading || mice.isLoading || qc.isLoading || series.isLoading;

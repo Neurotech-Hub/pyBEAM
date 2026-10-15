@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const TABS = ["quiescence", "circadian", "across", "data"] as const;
+/** Nav tabs in display order. "across" is the Cohort Effects tab (id kept so old links work). */
+export const TABS = ["quiescence", "circadian", "ultradian", "across", "data"] as const;
 export type Tab = (typeof TABS)[number];
 /** Every page: the nav tabs plus the Methods page (linked from the footer). */
 export const PAGES = [...TABS, "methods"] as const;
@@ -35,9 +36,17 @@ export const searchSchema = z.object({
   ti: z.number().min(0).max(1).catch(0.9),
   metric: z.string().catch("q_dark"),
   dist: z.enum(["hist", "ecdf"]).catch("hist"),
-  /** Row order on the Across cohorts tab: cohort/genotype, Hedges' g (descending), or p (ascending). */
+  /** Row order on the Cohort Effects tab: cohort/genotype, Hedges' g (descending), or p (ascending). */
   sort: z.enum(["subject", "g", "p"]).catch("subject"),
+  /** Cohort Effects metrics: the single `metric`, every metric, or every metric in one section. */
+  metricSet: z.enum(["one", "all", "states", "circadian", "ultradian"]).catch("one"),
+  /** Cohort Effects multi-metric views: one plot per metric, or one plot per cohort-genotype comparison. */
+  groupBy: z.enum(["metric", "comparison"]).catch("metric"),
   fold: z.boolean().catch(false),
+  /** Ultradian preprocessing: detrend within each light/dark block, or analyze raw activity. */
+  udt: z.enum(["detrended", "raw"]).catch("detrended"),
+  /** Ultradian plots: summarize over the full recording, light phase only, or dark phase only. */
+  uphase: z.enum(["all", "light", "dark"]).catch("all"),
 });
 
 export type Search = z.infer<typeof searchSchema>;

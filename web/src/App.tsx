@@ -9,11 +9,13 @@ import { AcrossTab } from "./tabs/AcrossTab";
 import { CircadianTab } from "./tabs/CircadianTab";
 import { DataTab } from "./tabs/DataTab";
 import { QuiescenceTab } from "./tabs/QuiescenceTab";
+import { UltradianTab } from "./tabs/UltradianTab";
 
 const TAB_LABELS: Record<Tab, string> = {
   quiescence: "Quiescence",
   circadian: "Circadian",
-  across: "Across cohorts",
+  ultradian: "Ultradian",
+  across: "Cohort Effects",
   data: "Data & QC",
 };
 
@@ -65,7 +67,7 @@ export default function App() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3 whitespace-nowrap text-[11px] text-slate-500">
-          {index && <span title="Latest Box zip modification time">Last updated {index.box_updated.slice(0, 10)}</span>}
+          {index && <span title={`Site last updated; Box data ${index.box_updated.slice(0, 10)}`}>Last updated {import.meta.env.VITE_SITE_UPDATED}</span>}
           <button type="button" onClick={copyLink} className="rounded border border-slate-300 px-2 py-0.5 hover:bg-slate-100">
             {copied ? "Copied" : "Copy link"}
           </button>
@@ -84,6 +86,7 @@ export default function App() {
           <>
             {search.tab === "quiescence" && <QuiescenceTab view={view} />}
             {search.tab === "circadian" && <CircadianTab view={view} />}
+            {search.tab === "ultradian" && <UltradianTab view={view} />}
             {search.tab === "across" && <AcrossTab view={view} />}
             {search.tab === "data" && <DataTab view={view} />}
           </>

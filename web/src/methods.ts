@@ -40,6 +40,41 @@ export const REFERENCES: Record<string, Reference> = {
     cite: "Refinetti R, Cornelissen G, Halberg F (2007) Procedures for numerical analysis of circadian rhythms. Biol Rhythm Res 38:275-325.",
     doi: "10.1080/09291010600903692",
   },
+  torrence1998: {
+    id: "torrence1998",
+    cite: "Torrence C, Compo GP (1998) A practical guide to wavelet analysis. Bull Am Meteorol Soc 79:61-78.",
+    doi: "10.1175/1520-0477(1998)079<0061:APGTWA>2.0.CO;2",
+  },
+  liu2007: {
+    id: "liu2007",
+    cite: "Liu Y, San Liang X, Weisberg RH (2007) Rectification of the bias in the wavelet power spectrum. J Atmos Ocean Technol 24:2093-2102.",
+    doi: "10.1175/2007JTECHO511.1",
+  },
+  leise2013: {
+    id: "leise2013",
+    cite: "Leise TL (2013) Wavelet analysis of circadian and ultradian behavioral rhythms. J Circadian Rhythms 11:5.",
+    doi: "10.1186/1740-3391-11-5",
+  },
+  riggle2022: {
+    id: "riggle2022",
+    cite: "Riggle JP, Kay LM, Onishi KG, et al. (2022) Modified wavelet analyses permit quantification of dynamic interactions between ultradian and circadian rhythms. J Biol Rhythms 37:631-654.",
+    doi: "10.1177/07487304221128652",
+  },
+  dowse2010: {
+    id: "dowse2010",
+    cite: "Dowse H, Umemori J, Koide T (2010) Ultradian components in the locomotor activity rhythms of the genetically normal mouse, Mus musculus. J Exp Biol 213:1788-1795.",
+    doi: "10.1242/jeb.038877",
+  },
+  lomb1976: {
+    id: "lomb1976",
+    cite: "Lomb NR (1976) Least-squares frequency analysis of unequally spaced data. Astrophys Space Sci 39:447-462.",
+    doi: "10.1007/BF00648343",
+  },
+  scargle1982: {
+    id: "scargle1982",
+    cite: "Scargle JD (1982) Studies in astronomical time series analysis. II. Statistical aspects of spectral analysis of unevenly spaced data. Astrophys J 263:835-853.",
+    doi: "10.1086/160554",
+  },
   lakens2013: {
     id: "lakens2013",
     cite: "Lakens D (2013) Calculating and reporting effect sizes to facilitate cumulative science: a practical primer for t-tests and ANOVAs. Front Psychol 4:863.",
@@ -123,6 +158,51 @@ export const METHOD_NOTES: Record<string, MethodNoteDef> = {
       "Interdaily stability is not reported because recordings span only 2 days.",
     refs: ["witting1990", "vansomeren1999"],
   },
+  ultradianPrep: {
+    title: "Ultradian preprocessing",
+    text:
+      "Ultradian analyses use each mouse's full 48-h activity_percent series (the day filter does not apply). " +
+      "Mice with more than 12 empty 10-min slots are not analyzed; remaining interior gaps are filled by linear interpolation and empty slots at the start or end are trimmed. " +
+      "By default each contiguous light or dark block has its own mean and linear trend removed (fit on observed samples only), which removes the light/dark step and slow drift within a phase " +
+      "without assuming a sinusoidal 24-h waveform. Subtracting each mouse's mean activity at each ZT bin is not used because, with only 2 days, the residuals of day 1 and day 2 would be exact mirror images. " +
+      "The Raw option analyzes activity with only its mean removed, so harmonics of the 24-h rhythm (12, 8, 6, 4.8 h, ...) appear. " +
+      "Periods of 0.5 to 8 h are analyzed in three bands (0.5-2, 2-4, 4-8 h); 8-12 h is omitted because 48 h holds only 4-6 such cycles, the band overlaps 24-h harmonics, and edge effects cover most of the recording.",
+    refs: ["dowse2010", "leise2013"],
+  },
+  wavelet: {
+    title: "Wavelet power, dominant period, and significance",
+    text:
+      "A Morlet continuous wavelet transform (w0 = 6) is computed by FFT over 32 log-spaced periods from 0.5 to 8 h. " +
+      "Power is |W|\u00b2 divided by the series variance and by the wavelet scale, so equal-amplitude oscillations give equal power at every period. " +
+      "Time points within the cone of influence (closer to either end of the recording than \u221a2 times the scale) are excluded from every summary. " +
+      "Time-averaged power over the light phase, dark phase, or whole recording gives the wavelet spectrum; band power is its mean over each band's periods, and the dominant ultradian period is its peak. " +
+      "Significance is tested against an AR(1) red-noise background fit to each mouse's lag-1 autocorrelation: a point is significant when its power exceeds the 95% chi-square (2 df) level. " +
+      "The significant fraction is the share of time points with significant power somewhere in 2-8 h. " +
+      "The red-noise test is pointwise and analytic; surrogate-data tests are not yet implemented.",
+    refs: ["torrence1998", "liu2007", "leise2013", "riggle2022"],
+  },
+  lombscargle: {
+    title: "Lomb-Scargle periodogram",
+    text:
+      "A normalized Lomb-Scargle periodogram over 0.5 to 8 h (5x oversampled frequency grid) is computed from the observed samples only, so gaps need no interpolation. " +
+      "It reports the period and normalized power of the highest peak and serves as a global check on the wavelet result.",
+    refs: ["lomb1976", "scargle1982"],
+  },
+  autocorr: {
+    title: "Autocorrelation",
+    text:
+      "The autocorrelation of the preprocessed series is computed at lags of 0 to 12 h using only pairs of observed samples. " +
+      "The peak lag is the first local maximum after the first zero crossing (and at least 0.5 h); a rhythm of period \u03c4 should give peaks near \u03c4, 2\u03c4, and so on.",
+    refs: ["dowse2010"],
+  },
+  interbout: {
+    title: "Awake bouts and inter-bout interval",
+    text:
+      "An awake bout is a run of consecutive awake bins under the current state thresholds; empty bins end a bout. " +
+      "The inter-bout interval is the time from one awake-bout onset to the next, summarized per mouse by its median. " +
+      "Comparing it with the dominant wavelet period tests whether a spectral peak reflects a repeating activity-rest cycle.",
+    refs: ["dowse2010"],
+  },
   actogram: {
     title: "Double-plotted actograms",
     text:
@@ -161,6 +241,11 @@ export const METHODS_ORDER: string[] = [
   "cosinor",
   "nonparametric",
   "actogram",
+  "ultradianPrep",
+  "wavelet",
+  "lombscargle",
+  "autocorr",
+  "interbout",
   "stats",
   "exclusions",
 ];

@@ -54,7 +54,7 @@ npm run preview # serve web/dist locally
 
 The site base path defaults to `/pyBEAM/`; set `BASE_PATH` (for example `BASE_PATH=/other-name/ npm run build`) to build for a different path.
 
-- **Tabs:** Quiescence (state thresholds, activity or inactivity distribution, state raster, time-in-state and bout metrics, threshold sensitivity map), Circadian (group activity by clock time or ZT, cosinor and non-parametric metrics, double-plotted actograms), Across cohorts (Hedges' g vs Wt for any metric in every cohort, sortable by cohort, g, or p), and Data & QC (cohort summary, mouse table, `qc_report`).
+- **Tabs:** Quiescence (state thresholds, activity or inactivity distribution, state raster, time-in-state and bout metrics, threshold sensitivity map), Circadian (group activity by clock time or ZT, cosinor and non-parametric metrics, double-plotted actograms), Ultradian (wavelet spectrum by group, mouse × period power heatmap, example scalogram, autocorrelation, ultradian metrics, inter-bout interval vs wavelet period), Cohort Effects (Hedges' g vs Wt for any metric in every cohort, sortable by cohort, g, or p; URL `tab=across`), and Data & QC (cohort summary, mouse table, `qc_report`).
 - **Filters:** cohort, genotype, sex (all, M, F, or split into genotype × sex groups), optional collapse of Hom and Hemi into a single KO group (on by default), key exclusions, the state basis (activity % or inactivity %), and the two state thresholds. Analysis uses both recording days.
 - **Shareable state:** every filter and threshold lives in the URL hash (for example `#/?cohort=009_C3&q=0.05&w=0.15&tab=circadian`); defaults are omitted. "Copy link" copies the current view.
 - **Print:** the browser print dialog hides controls and adds a header with the active filters, thresholds, data date, and link. Legends are part of the page, so they print with each plot.
@@ -68,6 +68,8 @@ All analysis runs in the browser on the 10-minute grid (`web/src/analysis/`, uni
 - **Light and dark phase:** lights on 06:00 to 18:00 (`lights_on`/`lights_off` in `config.yaml`, confirmed from `lux > 0`). ZT0 is lights on.
 - **Quiescence metrics:** percent of bins in each state (light, dark, 24 h), quiescent bouts per 24 h (runs of consecutive quiescent bins; empty bins break a bout), mean bout length, and the quiescent-to-awake transition rate (switches from a quiescent bin to an awake bin, skipping undefined bins, per hour of quiescence; empty bins reset it).
 - **Circadian metrics:** 24 h cosinor fit on every valid 10-minute bin (MESOR, amplitude, acrophase in ZT, R²), mean activity, fraction of activity in the dark phase, and, from hourly means, M10, L5, relative amplitude, and intradaily variability. Interdaily stability is omitted because recordings cover only 2 days.
+- **Ultradian metrics** (`web/src/analysis/ultradian.ts`): each mouse's full 48 h `activity_percent` series is analyzed (mice with more than 12 empty slots are skipped; interior gaps are linearly interpolated). By default each contiguous light or dark block has its mean and linear trend removed; "Raw" removes only the overall mean. A Morlet wavelet (ω0 = 6) over 32 log-spaced periods from 0.5 to 8 h gives power normalized by variance and scale, with the cone of influence excluded and an AR(1) red-noise 95% threshold per mouse. Per mouse, for light, dark, and 24 h: band power (0.5-2, 2-4, 4-8 h) and dominant period; plus the fraction of time with significant 2-8 h power, the autocorrelation peak lag and r (lags 0-12 h, first peak after the first zero crossing), and the Lomb-Scargle peak period and power. The 8-12 h band is omitted because 48 h is too short to separate it from 24 h harmonics and edge effects.
+- **Awake bouts:** runs of consecutive awake bins under the current thresholds; mean awake-bout length and the median onset-to-onset inter-bout interval (compared with the wavelet period on the Ultradian tab).
 - **Group comparisons:** each non-Wt genotype is compared with Wt in the same cohort (sex-matched when sex is split): Hedges' g with 95% CI and a two-sided Mann-Whitney U p-value (normal approximation with tie and continuity corrections). Hom and Hemi are pooled as KO by default (toggleable). No multiple-comparison correction is applied; results are for exploration.
 - **Exclusions:** when "Apply key exclusions" is on (default), mice whose key `Autoexcluder` starts with "Exclude" are dropped.
 - **QC flags:** mice with a warning or error in `qc_report` (other than `mouse_no_data`) are kept but outlined in red and listed above the plots.
@@ -150,7 +152,7 @@ Written by `pybeam run` (or `pybeam export`, which rebuilds it from the CSVs abo
 - `data/`: committed pipeline outputs (see above)
 - `web/src/data/`: typed loaders for `data/web/` (TanStack Query)
 - `web/src/state/`: URL search-param schema and the derived view (filters, subjects, metrics)
-- `web/src/analysis/`: states, circadian metrics, statistics, subject selection, tests
+- `web/src/analysis/`: states, circadian and ultradian metrics, statistics, subject selection, tests
 - `web/src/components/`: plot wrapper, legends, filter bar, threshold slider, metric panels, method notes
 - `web/src/tabs/`: one file per tab
 - `web/src/methods.ts`: method notes and references

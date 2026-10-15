@@ -6,6 +6,7 @@ import { analysisGenotype, displayGenotypeCounts, selectSubjects } from "./selec
 import { AWAKE, QUIESCENT, UNDEFINED, classify, classifySeries, stateMetrics, type State } from "./states";
 import { hedgesG, mannWhitney, mean, sem } from "./stats";
 import { dayMask, isLightSlot, makeSchedule, ztOf } from "./time";
+import { PERIODS, acf, acfPeak, cwt, detrendBlocks, fft, lombScargle, outsideCoi, prepSeries, summarizeCwt } from "./ultradian";
 
 const s = makeSchedule(10, 288, "06:00", "18:00");
 
@@ -62,8 +63,8 @@ describe("states", () => {
     const inact = Array.from({ length: 288 }, (_, i) => (isLightSlot(s, i) ? 1000 : 300));
     const series = { start: "", act, inact, light: [] };
     const mask = dayMask(s, "both");
-    const byAct = mouseMetrics(series, mask, s, { basis: "act", q: 0.05, w: 0.15 });
-    const byInact = mouseMetrics(series, mask, s, { basis: "inact", q: 0.95, w: 0.85 });
+    const byAct = mouseMetrics(series, mask, s, { basis: "act", q: 0.05, w: 0.15 }, "detrended");
+    const byInact = mouseMetrics(series, mask, s, { basis: "inact", q: 0.95, w: 0.85 }, "detrended");
     expect(byInact.q_light).toBe(100);
     expect(byInact.a_dark).toBe(100);
     for (const id of ["mean_act", "dark_frac", "mesor", "amplitude", "acrophase", "r2", "m10", "l5", "ra", "iv"]) {
@@ -173,5 +174,80 @@ describe("selectSubjects KO collapse", () => {
   it("filters by KO against remapped genotypes", () => {
     const subjects = selectSubjects(mice, series, { geno: "KO", sex: "all", excl: true, collapseKo: true }, "c1");
     expect(subjects.map((s) => s.mouse.Mouse_ID).sort()).toEqual(["b", "c"]);
+  });
+});
+
+describe("ultradian", () => {
+  const dt = 10 / 60;
+  const sine = (periodH: number, n = 288, amp = 0.1) => Array.from({ length: n }, (_, k) => amp * Math.sin((2 * Math.PI * k * dt) / periodH));
+  const stepJ = Math.log(PERIODS[1] / PERIODS[0]);
+
+  it("round-trips the FFT", () => {
+    const x = Array.from({ length: 64 }, (_, i) => Math.sin(i) + 0.3 * Math.cos(3 * i));
+    const re = Float64Array.from(x);
+    const im = new Float64Array(64);
+    fft(re, im);
+    fft(re, im, true);
+    re.forEach((v, i) => expect(v).toBeCloseTo(x[i], 10));
+    im.forEach((v) => expect(v).toBeCloseTo(0, 10));
+  });
+
+  it("finds a 3 h rhythm in the wavelet spectrum and excludes the cone of influence", () => {
+    const c = cwt(sine(3), dt);
+    const sum = summarizeCwt(c, new Array(288).fill(true), "all");
+    expect(Math.abs(Math.log(sum.period / 3))).toBeLessThanOrEqual(stepJ);
+    const j8 = PERIODS.length - 1;
+    expect(outsideCoi(c, j8, 0)).toBe(false);
+    expect(outsideCoi(c, j8, 143)).toBe(true);
+    expect(sum.bands[1]).toBeGreaterThan(sum.bands[0]);
+    expect(sum.bands[1]).toBeGreaterThan(sum.bands[2]);
+  });
+
+  it("gives equal-amplitude rhythms similar power at different periods", () => {
+    const p1 = summarizeCwt(cwt(sine(1.5), dt), new Array(288).fill(true), "all");
+    const p5 = summarizeCwt(cwt(sine(5), dt), new Array(288).fill(true), "all");
+    const peak = (x: typeof p1) => Math.max(...x.global.filter(Number.isFinite));
+    expect(peak(p5) / peak(p1)).toBeGreaterThan(0.7);
+    expect(peak(p5) / peak(p1)).toBeLessThan(1.4);
+  });
+
+  it("recovers a period with Lomb-Scargle despite gaps", () => {
+    const y = sine(4);
+    const k = y.map((_, i) => i).filter((i) => i % 7 !== 3 && (i < 100 || i > 120));
+    const ls = lombScargle(k, k.map((i) => y[i]), dt);
+    expect(ls.period).toBeCloseTo(4, 0);
+  });
+
+  it("puts the autocorrelation peak near the true lag", () => {
+    const x = sine(4);
+    const r = acf(x, x.map(() => true), 72);
+    const pk = acfPeak(r, 3);
+    expect(pk.lag * dt).toBeGreaterThan(3.6);
+    expect(pk.lag * dt).toBeLessThan(4.4);
+    expect(pk.r).toBeGreaterThan(0.8);
+  });
+
+  it("removes a light/dark square wave by block detrending", () => {
+    const light = Array.from({ length: 288 }, (_, i) => isLightSlot(s, i));
+    const x = light.map((l, i) => (l ? 0.02 : 0.3) + 0.0001 * i);
+    detrendBlocks(x, light).forEach((v) => expect(Math.abs(v)).toBeLessThan(1e-9));
+  });
+
+  it("skips mice with too many empty slots and fills short gaps", () => {
+    const act = Array.from({ length: 288 }, (_, i) => (i % 2 ? 100 : 200)) as (number | null)[];
+    act[50] = null;
+    const p = prepSeries(act, s, "raw")!;
+    expect(p.observed[50]).toBe(false);
+    expect(p.x[50]).toBeCloseTo(p.x[49] / 2 + p.x[51] / 2);
+    expect(prepSeries(act.map((a, i) => (i < 20 ? null : a)), s, "raw")).toBeNull();
+  });
+
+  it("measures awake bouts and inter-bout intervals, reset by empty bins", () => {
+    const Q: State = QUIESCENT, A: State = AWAKE;
+    // onsets at 0, 4, 9 (interval 4 and 5 bins); the empty bin at 12 resets, so onset 13 starts fresh.
+    const states: (State | null)[] = [A, A, Q, Q, A, Q, Q, Q, Q, A, A, A, null, A, Q];
+    const m = stateMetrics(states, states.map(() => true), s);
+    expect(m.ibiMedianH).toBeCloseTo((4.5 * 10) / 60);
+    expect(m.aBoutMeanMin).toBeCloseTo(((2 + 1 + 3 + 1) / 4) * 10);
   });
 });

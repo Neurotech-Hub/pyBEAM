@@ -87,7 +87,7 @@ function MetricCell({ view, id, domain }: { view: View; id: string; domain?: [nu
         type="button"
         onClick={() => setSearch({ metric: id })}
         className="mb-0.5 block w-full truncate text-left text-[11px] font-medium text-slate-700 hover:underline"
-        title="Use this metric for the sensitivity map and across-cohort view"
+        title="Use this metric for the sensitivity map and Cohort Effects"
       >
         {def.label} <span className="font-normal text-slate-400">{def.unit}</span>
       </button>
