@@ -26,7 +26,7 @@ export function CircadianTab({ view }: { view: View }) {
       <Panel
         title={
           <span className="flex items-center gap-1.5">
-            Rhythm metrics <MethodNote id="cosinor" /> <MethodNote id="stats" />
+            Rhythm metrics <MethodNote id="activity" /> <MethodNote id="cosinor" /> <MethodNote id="stats" />
           </span>
         }
       >

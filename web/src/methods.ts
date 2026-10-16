@@ -139,7 +139,8 @@ export const METHOD_NOTES: Record<string, MethodNoteDef> = {
   activity: {
     title: "Activity level and dark-phase fraction",
     text:
-      "Mean activity is the mean activity_percent over valid bins. The dark-phase fraction is the share of summed activity that falls in the dark phase. " +
+      "Mean activity is the mean activity_percent over valid bins. Activity in dark phase is not the activity level during the dark: it is the fraction of a mouse's total activity that falls in the dark phase. " +
+      "A mouse equally active day and night scores 0.5; a fully nocturnal mouse scores 1. The light-phase share is one minus this value, so it is not plotted separately. " +
       "Circadian metrics always use activity_percent, regardless of the state basis.",
     refs: [],
   },
